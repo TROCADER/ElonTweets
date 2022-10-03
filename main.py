@@ -11,4 +11,5 @@ for index, row in dataFrame.iterrows():
     if userYear in row["Date Created"] and userWord in row["Tweets"]:
         occurences += 1
 
+
 print(occurences)
