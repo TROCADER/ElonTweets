@@ -31,7 +31,7 @@ def draw_chart():
             tail += userWord[i]
 
     for index, row in elonsTweets.iterrows():   
-        if currentYear <= int(row["Date Created"][:4]):
+        if currentYear == int(row["Date Created"][:4]):
             output[currentYear] += len(re.findall(rf"\b({head.upper()}|{head}){tail}\b", row["Tweets"]))
         elif currentYear > int(row["Date Created"][:4]):
             currentYear -= 1
