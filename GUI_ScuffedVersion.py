@@ -25,25 +25,24 @@ def draw_chart():
     currentYear = int(yearEndEntry.get())
     output = {currentYear:0}
     head = userWord[0]
-    if len(userWord) > 1:
-        tail = ""
-        for i in range(1,len(userWord)):
-            tail += userWord[i]
+
 
     for index, row in elonsTweets.iterrows():
         if currentYear >= int(yearStartEntry.get()):
             if caseSensitive.get() == True:
                 if currentYear == int(row["Date Created"][:4]):
-                    #Funkar inte med userWord eller wordEntry.get(), kan inte kontrollera med value från textrutan
-                    #Koden är densamma som i gamla versionen, den gamla kodfilen utan GUI
-                    output[currentYear] += len(re.findall(rf"\b({userWord}\b", row["Tweets"])) 
+                    output[currentYear] += len(re.findall(rf"\b{userWord}\b", row["Tweets"])) 
                 elif currentYear > int(row["Date Created"][:4]):
                     currentYear -= 1
                     output[currentYear] = 0
             else:
+                userWord = userWord.lower()
+                if len(userWord) > 1:
+                    tail = ""
+                for i in range(1,len(userWord)):
+                    tail += userWord[i]
+
                 if currentYear == int(row["Date Created"][:4]):
-                    #Funkar inte som den skall, t.ex. returnerar ett ord som slutar på en stor bokstav 0 resultat
-                    #Funkar enbart om ordet börjar på stor bokstav
                     output[currentYear] += len(re.findall(rf"\b({head.upper()}|{head}){tail}\b", row["Tweets"]))
                 elif currentYear > int(row["Date Created"][:4]):
                     currentYear -= 1
