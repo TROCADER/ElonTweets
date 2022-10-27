@@ -1,33 +1,23 @@
 # Importerar alla nödvändiga bibliotek som används i projektet
-from cProfile import label
 from tkinter import *
-#from traceback import print_tb
 import pandas as pd
 import regex as re
 
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
-# Sätter dimensionerna på GUI:t
-window_width = 1000
-window_height = 600
-
 root = Tk()
-
 fig = Figure(figsize=(6, 4), dpi=200)
 
 # Rutan som innehåller figuren
 canvas = FigureCanvasTkAgg(fig, master=root) 
 canvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=1)
-toolbar = NavigationToolbar2Tk(canvas, root)
 
 # Funktion som ritar ut och hittar alla förekomster
 # Blir kallad varje gång som användaren klickar på knappen i GUI:t
 def draw_chart():
     # Rensar rutan så att enbart ny data syns
     fig.clear()
-    # Skapar en dict som datan från förekomsterna sparas i
-    output = {None:None}
 
     # Ger användaren möjligheten att kunna läsa in filer som redan finns på systemet, användbart om man exempelvis vill kolla på den senaste datan igen
     if onlyPrint.get() == True:
@@ -35,14 +25,14 @@ def draw_chart():
         fig.add_subplot(111).plot(readCsv["Year"], readCsv["Occurences"])
 
     # Om användaren inte vill kolla på redan existerande data så genereras ny som skriver över det som redan finns (om det finns något)
+    # Slutåret börjar som det som användaren sätter, därmed blir det "aktiva" året programmets slutår, till fall av annars bakåtvänd ordning
     else:
         output = {int(yearEndEntry.get()):0}
-        output = findOccurencesInpdDF(int(yearEndEntry.get()), int(yearStartEntry.get()), wordEntry.get(), output, caseSensitive.get(), pd.read_csv("elonmusk.csv"))
+        output = findOccurencesIndf(int(yearEndEntry.get()), int(yearStartEntry.get()), wordEntry.get(), output, caseSensitive.get(), pd.read_csv("elonmusk.csv"))
 
         # Skapar en pandas dataframe av dict:en där alla förekomster lagrades
         # Eftersom den nyligen skapta DF:en är felaktigt formaterad för att kunna användas väl måste dess index nollställas samt columner läggas till
         csvReadyDF = pd.DataFrame.from_dict(output, orient="index").reset_index()
-        print(csvReadyDF)
         csvReadyDF.columns = ["Year", "Occurences"]
 
         # Skriver DF:en med all data till en .csv som kan användas i andra projekt, samt för att se antalet förekomster i mer detalj
@@ -53,31 +43,29 @@ def draw_chart():
     
     # Ritar ut figuren 1 gång
     canvas.draw_idle()
+    
+    return None
 
-
-def findOccurencesInpdDF(activeYear, yearStart, wordToCheck, outputDict, sensitiveOrNot, pdDFToCheck):
-    for index, row in pdDFToCheck.iterrows():
+def findOccurencesIndf(activeYear, yearStart, wordToCheck, outputDict, isCaseSensitive, dfToCheck):
+    for index, row in dfToCheck.iterrows():
         # Bara år som är mellan tidsramarna som användaren har valt kommer att kontrolleras
-        if activeYear >= int(yearStart):
+        if activeYear >= yearStart:
             # Kontrollerar om användaren användaren har valt kontroll av specifikt det som input:ades (känslig på stor och liten bokstav)
             # Om användaren vill kontrollera med känlighet på stor och liten bokstav så kommer ordet att direkt kollas av, annars kommer alla kombinationer av stor och liten bokstav att testas
-            # Enda skillnaden är användningen av flaggan IGNORECASE som explicit säger till RegEx att ignorera om det är stor eller liten bokstav, därmed returnera får båda
-            if sensitiveOrNot == True:
-                # Kontrollerar om året tweeten tweetades på är samma som användaren matade in
-                # Om inte kommer det årtalet som användaren matade in att minskas med 1 och förekomster på det året blir markerat som 0, då inga förekomster skedde
-                # Om det finns förekomster på det året kommer antalet förekomster att loggas i dict:en
-                if activeYear == int(row["Date Created"][:4]):
-                    outputDict[activeYear] += len(re.findall(rf"\b{wordToCheck}\b", row["Tweets"])) 
-                elif activeYear > int(row["Date Created"][:4]):
-                    activeYear -= 1
-                    outputDict[activeYear] = 0
-            else:
-                if activeYear == int(row["Date Created"][:4]):
+            # Enda skillnaden är användningen av flaggan IGNORECASE som explicit säger till RegEx att ignorera om det är stor eller liten bokstav, därmed returnera för båda
+            # Kontrollerar om året tweeten tweetades på är samma som användaren matade in
+            # Om inte kommer det årtalet som användaren matade in att minskas med 1 och förekomster på det året blir markerat som 0, då inga förekomster skedde
+            # Året minskar med 1 för att gå vidare till nästa år som ska sökas igenom, detta pågår sålänge som året är inom tidsramarna angedda av användaren
+            # Om det finns förekomster på det året kommer antalet förekomster att loggas i dict:en tillsammans med vilket år
+            if activeYear == int(row["Date Created"][:4]):
+                if isCaseSensitive == True:
+                    outputDict[activeYear] += len(re.findall(rf"\b{wordToCheck}\b", row["Tweets"]))
+                else:
                     outputDict[activeYear] += len(re.findall(rf"\b{wordToCheck}\b", row["Tweets"], re.IGNORECASE))
-                elif activeYear > int(row["Date Created"][:4]):
-                    activeYear -= 1
-                    outputDict[activeYear] = 0
-    
+            elif activeYear > int(row["Date Created"][:4]):
+                activeYear -= 1
+                outputDict[activeYear] = 0
+
     return outputDict
 
 # Rutor för vad som ska analyseras
