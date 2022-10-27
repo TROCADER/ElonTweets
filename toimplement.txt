@@ -1,4 +1,0 @@
-X option between case-sensitive or not (bit broken at the moment)
-X select timeframe
-more specified timeframe
-start at first occurence
