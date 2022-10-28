@@ -68,7 +68,7 @@ def findOccurencesIndf(activeYear, yearStart, wordToCheck, outputDict, isCaseSen
 
     return outputDict
 
-availableYears = [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022]
+availableYears = [*range(2010, 2023, 1)]
 
 # Rutor för vad som ska analyseras
 wordEntry = Entry(root, width=10, font=("calibre", 10, "normal"))
@@ -89,7 +89,7 @@ onlyPrint = BooleanVar()
 onlyPrintEntry = Checkbutton(root, variable=onlyPrint, onvalue=True, offvalue=False)
 # Label för en "lapp" som säger något, varav i detta fall frågar användaren
 # .pack() gör datan redo att presenteras i GUI:t, gör så att tkinter vet hur den ska skriva ut den
-Label(root, text="Enter word, or leave blank for number to total words.").pack()
+Label(root, text="Enter word or phrase, or leave blank for total number of words.").pack()
 wordEntry.pack()
 Label(root, text="Enter start year.").pack()
 yearStartEntry.pack()
@@ -104,5 +104,5 @@ onlyPrintEntry.pack()
 Button(root,text="Start!", command=draw_chart).pack()
 
 # Håller rutan igång och därmed programmet igång
-# Tkinter kör om sålänge som rutan är öppen, därmed varför en while-loop in behövs/kan användas
+# Tkinter kör om så länge som rutan är öppen, därmed varför en while-loop in behövs/kan användas för att hålla programmet aktivt
 root.mainloop()
