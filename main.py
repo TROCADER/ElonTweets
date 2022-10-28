@@ -1,4 +1,5 @@
 # Importerar alla nödvändiga bibliotek som används i projektet
+from os import path
 from tkinter import *
 import pandas as pd
 import regex as re
@@ -27,8 +28,8 @@ def draw_chart():
     # Om användaren inte vill kolla på redan existerande data så genereras ny som skriver över det som redan finns (om det finns något)
     # Slutåret börjar som det som användaren sätter, därmed blir det "aktiva" året programmets slutår, till fall av annars bakåtvänd ordning
     else:
-        output = {int(yearEndEntry.get()):0}
-        output = findOccurencesIndf(int(yearEndEntry.get()), int(yearStartEntry.get()), wordEntry.get(), output, caseSensitive.get(), pd.read_csv("elonmusk.csv"))
+        output = {int(yearEnd.get()):0}
+        output = findOccurencesIndf(int(yearEnd.get()), int(yearStart.get()), wordEntry.get(), output, caseSensitive.get(), pd.read_csv("elonmusk.csv"))
 
         # Skapar en pandas dataframe av dict:en där alla förekomster lagrades
         # Eftersom den nyligen skapta DF:en är felaktigt formaterad för att kunna användas väl måste dess index nollställas samt columner läggas till
@@ -36,7 +37,11 @@ def draw_chart():
         csvReadyDF.columns = ["Year", "Occurences"]
 
         # Skriver DF:en med all data till en .csv som kan användas i andra projekt, samt för att se antalet förekomster i mer detalj
-        csvReadyDF.to_csv("data.csv", index=False)
+        # Kollar först om en fil vid namnet existerar, om ja så namnger den den nya filen till en (1) istället, inte den bästa lösningen då den bara säkrar innehållet hos den dörsta filen
+        if path.exists("data.csv") == True:
+            csvReadyDF.to_csv("data(1).csv", index=False)
+        else:
+            csvReadyDF.to_csv("data.csv", index=False)
 
         # Lägger till en graf genererad av matplotlib enligt formatet, 1 rad, 1 column på graf 1 (111)
         fig.add_subplot(111).plot(list(output.keys()), list(output.values()))
@@ -68,10 +73,19 @@ def findOccurencesIndf(activeYear, yearStart, wordToCheck, outputDict, isCaseSen
 
     return outputDict
 
+availableYears = ["2010", "2011", "2012", "2013", "2014", "2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022"]
+
 # Rutor för vad som ska analyseras
 wordEntry = Entry(root, width=5, font=("calibre", 10, "normal"))
-yearStartEntry = Entry(root, width=5, font=("calibre", 10, "normal"))
-yearEndEntry = Entry(root, width=5, font=("calibre", 10, "normal"))
+
+yearStart = StringVar()
+yearStart.set(availableYears[0])
+yearStartEntry = OptionMenu(root, yearStart, *availableYears)
+
+yearEnd = StringVar()
+yearEnd.set(availableYears[-1])
+yearEndEntry = OptionMenu(root, yearEnd, *availableYears)
+
 # Gör en checkbox som ändrar variabeln nedan, variabeln används i huvudlogiken
 # Eftersom att man inte direkt kan hämta datan från en checkbox så behöver vi först ändra på en variabel till checkboxens data, därmed varför ytterliggare variablar finns
 caseSensitive = BooleanVar()
@@ -86,9 +100,9 @@ Label(root, text="Enter start year").pack()
 yearStartEntry.pack()
 Label(root, text="Enter end year").pack()
 yearEndEntry.pack()
-Label(root, text="Case sensitive?", width=20).pack()
+Label(root, text="Case sensitive?").pack()
 caseSensitiveEntry.pack()
-Label(root, text="Read from existing .csv?", width=20).pack()
+Label(root, text="Read from existing .csv?").pack()
 onlyPrintEntry.pack()
 # Knapp som startar logiken
 Button(root,text="Draw", command=draw_chart).pack()
