@@ -1,5 +1,4 @@
 # Importerar alla nödvändiga bibliotek som används i projektet
-from os import path
 from tkinter import *
 import pandas as pd
 import regex as re
@@ -28,8 +27,8 @@ def draw_chart():
     # Om användaren inte vill kolla på redan existerande data så genereras ny som skriver över det som redan finns (om det finns något)
     # Slutåret börjar som det som användaren sätter, därmed blir det "aktiva" året programmets slutår, till fall av annars bakåtvänd ordning
     else:
-        output = {int(yearEnd.get()):0}
-        output = findOccurencesIndf(int(yearEnd.get()), int(yearStart.get()), wordEntry.get(), output, caseSensitive.get(), pd.read_csv("elonmusk.csv"))
+        output = {yearEnd.get():0}
+        output = findOccurencesIndf(yearEnd.get(), yearStart.get(), wordEntry.get(), output, caseSensitive.get(), pd.read_csv("elonmusk.csv"))
 
         # Skapar en pandas dataframe av dict:en där alla förekomster lagrades
         # Eftersom den nyligen skapta DF:en är felaktigt formaterad för att kunna användas väl måste dess index nollställas samt columner läggas till
@@ -37,11 +36,7 @@ def draw_chart():
         csvReadyDF.columns = ["Year", "Occurences"]
 
         # Skriver DF:en med all data till en .csv som kan användas i andra projekt, samt för att se antalet förekomster i mer detalj
-        # Kollar först om en fil vid namnet existerar, om ja så namnger den den nya filen till en (1) istället, inte den bästa lösningen då den bara säkrar innehållet hos den dörsta filen
-        if path.exists("data.csv") == True:
-            csvReadyDF.to_csv("data(1).csv", index=False)
-        else:
-            csvReadyDF.to_csv("data.csv", index=False)
+        csvReadyDF.to_csv("data.csv", index=False)
 
         # Lägger till en graf genererad av matplotlib enligt formatet, 1 rad, 1 column på graf 1 (111)
         fig.add_subplot(111).plot(list(output.keys()), list(output.values()))
@@ -73,16 +68,16 @@ def findOccurencesIndf(activeYear, yearStart, wordToCheck, outputDict, isCaseSen
 
     return outputDict
 
-availableYears = ["2010", "2011", "2012", "2013", "2014", "2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022"]
+availableYears = [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022]
 
 # Rutor för vad som ska analyseras
-wordEntry = Entry(root, width=5, font=("calibre", 10, "normal"))
+wordEntry = Entry(root, width=10, font=("calibre", 10, "normal"))
 
-yearStart = StringVar()
+yearStart = IntVar()
 yearStart.set(availableYears[0])
 yearStartEntry = OptionMenu(root, yearStart, *availableYears)
 
-yearEnd = StringVar()
+yearEnd = IntVar()
 yearEnd.set(availableYears[-1])
 yearEndEntry = OptionMenu(root, yearEnd, *availableYears)
 
@@ -94,18 +89,19 @@ onlyPrint = BooleanVar()
 onlyPrintEntry = Checkbutton(root, variable=onlyPrint, onvalue=True, offvalue=False)
 # Label för en "lapp" som säger något, varav i detta fall frågar användaren
 # .pack() gör datan redo att presenteras i GUI:t, gör så att tkinter vet hur den ska skriva ut den
-Label(root, text="Enter word").pack()
+Label(root, text="Enter word, or leave blank for number to total words.").pack()
 wordEntry.pack()
-Label(root, text="Enter start year").pack()
+Label(root, text="Enter start year.").pack()
 yearStartEntry.pack()
-Label(root, text="Enter end year").pack()
+Label(root, text="Enter end year.").pack()
 yearEndEntry.pack()
 Label(root, text="Case sensitive?").pack()
 caseSensitiveEntry.pack()
 Label(root, text="Read from existing .csv?").pack()
+Label(root, text="(Note that other selections will be ignored)").pack()
 onlyPrintEntry.pack()
 # Knapp som startar logiken
-Button(root,text="Draw", command=draw_chart).pack()
+Button(root,text="Start!", command=draw_chart).pack()
 
 # Håller rutan igång och därmed programmet igång
 # Tkinter kör om sålänge som rutan är öppen, därmed varför en while-loop in behövs/kan användas
